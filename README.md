@@ -79,7 +79,7 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
     以下のコマンドをターミナルで実行し、Python環境が正しくインストールされていることを確認してください。
 
     ```bash
-    Python --version
+    python --version
     # Python 3.10.12
     ```
 
@@ -92,7 +92,7 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
 
     ```bash
     git clone https://github.com/Sakamochanq/nnForge.git
-    cd nnForge
+    cd nnForge/src
     ```
 
 <br>
@@ -114,30 +114,33 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
 
 4. 環境変数の設定
 
-    こちらの開発環境では `SDNET2018` という、AIや機械学習の技術を使ってコンクリートのひび割れや欠陥を検出・分類する研究用画像データセットを使用しています。
-    `./src/assets/dataset/SDNET2018` にデータセットを配置します。
-    その他の環境変数は `./src/assets/config.py` に記載されているものを適宜変更します。
+   深層学習で使用するハイパーパラメータはすべて [`config.py`](./src/assets/config.py) で管理されています。   
+   使用するデータセットや最大学習回数、バッチサイズおよび学習率など必要に応じて変更してください。 
 
-    ```py
+    ```python
     class config:
-    
-    # 学習させるデータセット
-    dataset = "~~\\SDNET2018\\W";
-    
-    #画像サイズ
-    img_size = 224;
-    
-    # バッチサイズ
-    batch_size = 32;
-    
-    # 学習回数
-    epochs = 30;
-    
-    # 学習率
-    learning_rate = 0.001;
-    
-    #学習モデルの保存先
-    model = "Model.pth";
+
+      # 学習させるデータセット
+      dataset = "C:\\Enviroments\\nnForge\\src\\dataset\\2026";
+
+      # 各サブフォルダ名
+      train_img_dir = "C:\\Enviroments\\dataset\\2026\\train_img"
+      train_lab_dir = "C:\\Enviroments\\dataset\\2026\\train_lab"
+
+      # 分割シード
+      seed = 42
+
+      #画像サイズ
+      # img_size = 512;
+
+      # バッチサイズ
+      batch_size = 16;
+
+      # 学習回数
+      epochs = 100;
+
+      # 学習率
+      learning_rate = 0.001;
     ```
 
 <br>
@@ -147,12 +150,14 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
 
  以下のコマンドをターミナルで実行し、学習と推論を実行してください。
  
+<br>
+
+<h4>学習の実行</h4>
+
+
  ```bash
  # 学習の実行
  python main.py
-
- # 推論の実行
- python runner.py
  ```
 
 <br>
@@ -168,11 +173,56 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
     <tbody>
       <tr>
         <td>
-          <img src=".github/screenie/Train.png" width="400"/>
+          <img src=".github/screenie/train.png" width="300"/>
         </td>
         <td>
-          <img src=".github/screenie/Learning-Curve.png" width="350"/>
+          <img src=".github/screenie/lr_curve.png" width="350"/>
         </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<br>
+
+<h4>推論の実行</h4>
+
+```bash
+# 推論の実行
+python runner.py
+```
+
+
+なお、推論実行時には、予測結果に対し5つのオプション（モルフォロジー処理）を設定している。
+
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th>処理</th>
+        <th>概要</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Origin</td>
+        <td>モルフォロジー処理を行わない</td>
+      </tr>
+      <tr>
+        <td>Erosion</td>
+        <td>収縮処理を行う</td>
+      </tr>
+      <tr>
+        <td>Dilation</td>
+        <td>膨張処理を行う</td>
+      </tr>
+      <tr>
+        <td>Opening</td>
+        <td>収縮後に膨張処理を行う</td>
+      </tr>
+      <tr>
+        <td>Closing</td>
+        <td>膨張後に収縮処理を行う</td>
       </tr>
     </tbody>
   </table>
@@ -185,16 +235,16 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
     <thead>
       <tr>
         <th>推論</th>
-        <th>Grad-CAM</th>
+        <th>結果</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>
-          <img src=".github/screenie/Predict.png" width="400"/>
+          <img src=".github/screenie/predict.png" width="400"/>
         </td>
         <td>
-          <img src=".github/screenie/Grad-Cam.png" width="350"/>
+          <img src=".github/screenie/result.png" width="350"/>
         </td>
       </tr>
     </tbody>
@@ -202,26 +252,40 @@ Pythonの標準的なコードに近い感覚で動的に計算グラフを構�
 </div>
 
 <br>
+
+`Overall`は、すべての処理結果を統合したものであり、
+`Micro Average`は、各処理結果を画素単位で計算した平均値を示しています。これにより、ひび割れ領域を分割した場合でも、背景画像に評価指標が引っ張られることなく、正確な評価が可能となります。
+`Macro Average`は画像ごとの評価指標を平均化したものであり、ひび割れ領域の分割に関係なく、全体的な性能を把握することができる。
+
+<br>
 <br>
 
 <h3>フォルダ構成</h3>
 
-```
+```bash
 nnForge/
     ├── src/
     │   ├── assets/
-    │   │   ├── __init__.py    # 初期化ファイル
-    │   │   ├── config.py      # 環境変数
-    │   │   ├── dataset.py     # データセットの分割
-    │   │   ├── model.py       # Neural Network
-    │   │   ├── predict.py     # 推論定義
-    │   │   └── train.py       # 学習定義
-    │   ├── main.py            # 学習実行
-    │   └── runner.py          # 推論実行
+    │   │   ├── __init__.py          # 初期化ファイル
+    │   │   ├── config.py            # 環境変数
+    │   │   ├── dataset.py           # データセットの分割
+    │   │   ├── lr_scheduler.py      # 学習率スケジューラ
+    │   │   ├── model.py             # Neural Network
+    │   │   ├── predict.py           # 推論定義
+    │   │   └── train.py             # 学習定義
+    │   ├── main.py                  # 学習実行
+    │   └── runner.py                # 推論実行
     ├── .gitignore
     ├── README.md
     └── requirements.txt       # 依存関係の定義
 ```
+
+<br>
+<br>
+
+<h3>License</h3>
+
+Undefined.
 
 <br>
 <br>
