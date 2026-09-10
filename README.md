@@ -1,5 +1,5 @@
 <div align="center">
-    <h2>Neural Network Forge</h2>
+    <h2>PyTorch Semantic Segmentation Environment.</h2>
     <p>画像解析・深層学習を行うための開発環境 🐉</p>
 </div>
 
